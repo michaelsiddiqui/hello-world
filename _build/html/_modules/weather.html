@@ -1,0 +1,243 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>weather &mdash; weather 1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="weather 1 documentation" href="../index.html"/>
+        <link rel="up" title="Module code" href="index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> weather
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <!-- Local TOC -->
+                <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">weather</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">Module code</a> &raquo;</li>
+      
+    <li>weather</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for weather</h1><div class="highlight"><pre>
+<span></span><span class="c1"># module containing simple functions</span>
+<span class="c1"># to wrap API calls to wunderground.com</span>
+<span class="c1"># and return information about the weather</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="c1"># set globals for GET request</span>
+<span class="n">API_KEY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;WUNDERGROUND_KEY&quot;</span><span class="p">]</span>
+<span class="n">url_root</span> <span class="o">=</span> <span class="s1">&#39;http://api.wunderground.com/api/&#39;</span>
+<span class="n">geo_conditions</span> <span class="o">=</span> <span class="s1">&#39;/geolookup/conditions/q/&#39;</span>
+
+
+<span class="c1"># ask user location choice</span>
+<div class="viewcode-block" id="interactive_location"><a class="viewcode-back" href="../docs/source/weather.html#weather.interactive_location">[docs]</a><span class="k">def</span> <span class="nf">interactive_location</span><span class="p">():</span>
+    <span class="sd">&#39;&#39;&#39;helper function to ask the user the location</span>
+<span class="sd">    to check the weather conditions</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="nb">print</span> <span class="s1">&#39;choose where to check the weather&#39;</span>
+    <span class="n">location</span> <span class="o">=</span> <span class="n">raw_input</span><span class="p">(</span><span class="s1">&#39;location: &#39;</span><span class="p">)</span>
+
+    <span class="c1"># wunderground can choose location by ip address</span>
+    <span class="k">if</span> <span class="n">location</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;here&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">]:</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="s1">&#39;autoip&#39;</span>
+    <span class="k">return</span> <span class="n">location</span></div>
+
+
+<span class="c1"># function to check the weather via</span>
+<span class="c1"># an API call to wunderground</span>
+<div class="viewcode-block" id="check_the_weather"><a class="viewcode-back" href="../docs/source/weather.html#weather.check_the_weather">[docs]</a><span class="k">def</span> <span class="nf">check_the_weather</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;check the current weather and temp</span>
+<span class="sd">    for a specified location</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">location</span><span class="p">:</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="n">interactive_location</span><span class="p">()</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">url_root</span> <span class="o">+</span> <span class="n">API_KEY</span> <span class="o">+</span> <span class="n">geo_conditions</span> <span class="o">+</span> <span class="n">location</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span> <span class="o">+</span> <span class="s1">&#39;.json&#39;</span><span class="p">)</span>
+    <span class="n">weather_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">city</span> <span class="o">=</span> <span class="n">weather_dict</span><span class="p">[</span><span class="s1">&#39;location&#39;</span><span class="p">][</span><span class="s1">&#39;city&#39;</span><span class="p">]</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">weather_dict</span><span class="p">[</span><span class="s1">&#39;location&#39;</span><span class="p">][</span><span class="s1">&#39;state&#39;</span><span class="p">]</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">weather_dict</span><span class="p">[</span><span class="s1">&#39;current_observation&#39;</span><span class="p">][</span><span class="s1">&#39;temperature_string&#39;</span><span class="p">]</span>
+        <span class="n">weather</span> <span class="o">=</span> <span class="n">weather_dict</span><span class="p">[</span><span class="s1">&#39;current_observation&#39;</span><span class="p">][</span><span class="s1">&#39;weather&#39;</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">error</span> <span class="o">=</span> <span class="s2">&quot;something didn&#39;t work&quot;</span>
+        <span class="k">return</span> <span class="n">error</span>
+    <span class="n">line1</span> <span class="o">=</span> <span class="s2">&quot;Weather for &quot;</span> <span class="o">+</span> <span class="n">city</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span> <span class="o">+</span> <span class="n">state</span> <span class="o">+</span> <span class="s1">&#39; is&#39;</span>
+    <span class="n">line2</span> <span class="o">=</span> <span class="n">weather</span> <span class="o">+</span> <span class="s1">&#39; and the temperature is &#39;</span> <span class="o">+</span> <span class="n">temp</span>
+    <span class="n">output_string</span> <span class="o">=</span> <span class="n">line1</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">line2</span>
+    <span class="k">return</span> <span class="n">output_string</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Michael Siddiqui.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
