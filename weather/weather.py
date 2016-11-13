@@ -15,8 +15,8 @@ geo_conditions = '/geolookup/conditions/q/'
 
 # ask user location choice
 def interactive_location():
-    '''helper function to ask the user for what location
-    would he/sheS like to check the weather conditions
+    '''helper function to ask the user the location
+    to check the weather conditions
     '''
     print 'choose where to check the weather'
     location = raw_input('location: ')
@@ -50,4 +50,3 @@ def check_the_weather(location=''):
     line2 = weather + ' and the temperature is ' + temp
     output_string = line1 + '\n' + line2
     return output_string
-
